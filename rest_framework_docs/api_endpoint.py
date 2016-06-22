@@ -133,3 +133,25 @@ class ApiEndpoint(object):
         # FIXME:
         # Return JSON or not?
         return json.dumps(self.fields)
+
+    def __get_serializer_read_only_fields__(self):
+        fields = []
+        serializer = self.__get_serializer__()
+
+        if serializer:
+            meta = getattr(serializer, 'Meta', None)
+            if meta:
+                fields = getattr(meta, 'read_only_fields', None)
+                return fields
+
+    def __get_serializer_write_only_fields__(self):
+        fields = []
+        serializer = self.__get_serializer__()
+
+        if serializer:
+            meta = getattr(serializer, 'Meta', None)
+            if meta:
+                for key, value in getattr(meta, 'extra_kwargs', {}).items():
+                    if 'write_only' in value:
+                        fields.append(key)
+                return fields
