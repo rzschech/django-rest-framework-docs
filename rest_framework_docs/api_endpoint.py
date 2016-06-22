@@ -122,7 +122,8 @@ class ApiEndpoint(object):
                     "type": str(field.__class__.__name__),
                     "sub_fields": sub_fields,
                     "required": field.required,
-                    "to_many_relation": to_many_relation
+                    "to_many_relation": to_many_relation,
+                    "choices": hasattr(field, 'choices') and field.choices
                 })
             # FIXME:
             # Show more attibutes of `field`?
