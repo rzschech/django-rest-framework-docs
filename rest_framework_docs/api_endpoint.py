@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.serializers import BaseSerializer
+from rest_framework.serializers import PrimaryKeyRelatedField
 
 VIEWSET_METHODS = {
     'List': ['get', 'post'],
@@ -123,12 +124,24 @@ class ApiEndpoint(object):
                     "sub_fields": sub_fields,
                     "required": field.required,
                     "to_many_relation": to_many_relation,
-                    "choices": hasattr(field, 'choices') and field.choices
+                    "choices": self.__get_field_choices(field),
                 })
             # FIXME:
             # Show more attibutes of `field`?
 
         return fields
+
+    def __get_field_choices(self, field):
+        """If it's a related field returns an one element list with the
+        related model. If the field has choices returns the
+        choices. Else returns `None`
+
+        """
+        if isinstance(field, PrimaryKeyRelatedField):
+            return ['Related field ' + str(field.queryset.model)]
+
+        if hasattr(field, 'choices'):
+            return field.choices
 
     def __get_serializer_fields_json__(self):
         # FIXME:
