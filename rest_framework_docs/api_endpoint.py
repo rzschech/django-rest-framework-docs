@@ -141,6 +141,13 @@ class ApiEndpoint(object):
             return ['Related field ' + str(field.queryset.model)]
 
         if hasattr(field, 'choices'):
+            # Force choice keys to be a string or `json.dumps` fails
+            # This happens when using django-timezone-field where
+            # choices are a <pytz.timezone> object.
+            if isinstance(field.choices, dict):
+                if not all(map(lambda x: isinstance(x, str), field.choices.keys())):
+                    choices = dict([(str(key), field.choices[key]) for key in field.choices.keys()])
+                    return choices
             return field.choices
 
     def __get_serializer_fields_json__(self):
