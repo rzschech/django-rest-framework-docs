@@ -2,9 +2,11 @@ import json
 import inspect
 
 from django.contrib.admindocs.views import simplify_regex
-from django.utils.encoding import force_str
-
 from rest_framework.viewsets import ModelViewSet
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.encoding import force_str, force_text
+from django.utils.functional import Promise
+
 from rest_framework.serializers import BaseSerializer
 from rest_framework.serializers import PrimaryKeyRelatedField
 
@@ -12,6 +14,13 @@ VIEWSET_METHODS = {
     'List': ['get', 'post'],
     'Instance': ['get', 'put', 'patch', 'delete'],
 }
+
+
+class LazyEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Promise):
+            return force_text(obj)
+        return super(LazyEncoder, self).default(obj)
 
 
 class ApiEndpoint(object):
@@ -156,7 +165,7 @@ class ApiEndpoint(object):
     def __get_serializer_fields_json__(self):
         # FIXME:
         # Return JSON or not?
-        return json.dumps(self.fields)
+        return json.dumps(self.fields, cls=LazyEncoder)
 
     def __get_serializer_read_only_fields__(self):
         fields = []
