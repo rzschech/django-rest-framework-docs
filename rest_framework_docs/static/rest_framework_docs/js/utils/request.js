@@ -8,9 +8,9 @@ module.exports = {
   },
 
   shouldAddHeader: function (permissions) {
-    if (permissions === 'AllowAny') {
-      return false;
-    }
+    // if (permissions === 'AllowAny') {
+    //   return false;
+    // }
     return true;
   }
 
