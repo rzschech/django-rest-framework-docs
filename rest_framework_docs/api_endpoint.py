@@ -2,7 +2,7 @@ import json
 import inspect
 
 from django.contrib.admindocs.views import simplify_regex
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ViewSetMixin
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.encoding import force_str, force_text
 from django.utils.functional import Promise
@@ -11,8 +11,16 @@ from rest_framework.serializers import BaseSerializer
 from rest_framework.serializers import PrimaryKeyRelatedField
 
 VIEWSET_METHODS = {
-    'List': ['get', 'post'],
-    'Instance': ['get', 'put', 'patch', 'delete'],
+    'List': {
+        'get': 'list',
+        'post': 'create'
+    },
+    'Instance': {
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    },
 }
 
 
@@ -53,10 +61,15 @@ class ApiEndpoint(object):
 
     def is_method_allowed(self, callback_cls, method_name):
         has_attr = hasattr(callback_cls, method_name)
-        viewset_method = (issubclass(callback_cls, ModelViewSet) and
-                          method_name in VIEWSET_METHODS.get(self.callback.suffix, []))
+        viewset_method = (issubclass(callback_cls, ViewSetMixin) and
+                          hasattr(callback_cls, VIEWSET_METHODS.get(self.callback.suffix, {}).get(method_name, '')))
 
-        return has_attr or viewset_method
+        try:  # fix for detail_routes and list_routes
+            b = method_name in self.callback.actions
+        except AttributeError:
+            b = False
+
+        return has_attr or viewset_method or b
 
     def __get_allowed_methods__(self):
         viewset_methods = []
