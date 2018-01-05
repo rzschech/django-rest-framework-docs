@@ -9,6 +9,8 @@ from django.utils.functional import Promise
 
 from rest_framework.serializers import BaseSerializer
 from rest_framework.serializers import PrimaryKeyRelatedField
+from rest_framework.serializers import RelatedField
+from rest_framework.serializers import ManyRelatedField
 
 VIEWSET_METHODS = {
     'List': {
@@ -169,7 +171,7 @@ class ApiEndpoint(object):
             # Force choice keys to be a string or `json.dumps` fails
             # This happens when using django-timezone-field where
             # choices are a <pytz.timezone> object.
-            if isinstance(field.choices, dict):
+            if not isinstance(field, (RelatedField, ManyRelatedField)) and isinstance(field.choices, dict):
                 if not all(map(lambda x: isinstance(x, str), field.choices.keys())):
                     choices = dict([(str(key), field.choices[key]) for key in field.choices.keys()])
                     return choices
